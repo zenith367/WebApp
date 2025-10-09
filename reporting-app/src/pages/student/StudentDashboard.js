@@ -17,7 +17,7 @@ function StudentDashboard() {
   useEffect(() => {
     if (user) {
       axios
-        .get("http://localhost:5000/api/student/reports")
+        .get("https://backend-n6s1.onrender.com/api/student/reports")
         .then((res) => setReports(res.data))
         .catch((err) => console.error("❌ Error fetching reports:", err));
     }
