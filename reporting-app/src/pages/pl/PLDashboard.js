@@ -23,7 +23,7 @@ function PLDashboard() {
   // ✅ Download Excel file
   const downloadExcel = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/export/reports", {
+      const res = await axios.get("https://backend-n6s1.onrender.com/api/export/reports", {
         responseType: "blob",
       });
       const url = window.URL.createObjectURL(new Blob([res.data]));
@@ -90,7 +90,7 @@ function PLDashboard() {
   // ✅ Add course
   const addCourse = async (e) => {
     e.preventDefault();
-    const res = await axios.post("http://localhost:5000/api/pl/courses", newCourse);
+    const res = await axios.post("https://backend-n6s1.onrender.com/api/pl/courses", newCourse);
     setCourses([res.data, ...courses]);
     setNewCourse({ name: "", description: "" });
     setShowForm(false);
@@ -98,7 +98,7 @@ function PLDashboard() {
 
   // ✅ Assign lecturer
   const assignLecturer = async (courseId, lecturerId) => {
-    await axios.post(`http://localhost:5000/api/pl/courses/${courseId}/assign`, {
+    await axios.post(`https://backend-n6s1.onrender.com/api/pl/courses/${courseId}/assign`, {
       lecturer_id: lecturerId,
     });
     alert("✅ Lecturer assigned!");
