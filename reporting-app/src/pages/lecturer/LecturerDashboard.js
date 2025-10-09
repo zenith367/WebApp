@@ -43,7 +43,7 @@ function LecturerDashboard() {
   const submitReport = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:5000/api/lecturer/report", {
+      const res = await axios.post("https://backend-n6s1.onrender.com/api/lecturer/report", {
         ...report,
         lecturer_id: user.id,
       });
