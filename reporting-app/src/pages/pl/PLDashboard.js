@@ -43,10 +43,10 @@ function PLDashboard() {
     if (!activeTab) return;
 
     const endpoints = {
-      courses: ["http://localhost:5000/api/pl/courses", "http://localhost:5000/api/pl/lectures"],
-      reports: ["http://localhost:5000/api/pl/reports"],
-      ratings: ["http://localhost:5000/api/pl/ratings"],
-      classes: ["http://localhost:5000/api/pl/classes"],
+      courses: ["https://backend-n6s1.onrender.com/api/pl/courses", "https://backend-n6s1.onrender.com/api/pl/lectures"],
+      reports: ["https://backend-n6s1.onrender.com/api/pl/reports"],
+      ratings: ["https://backend-n6s1.onrender.com/api/pl/ratings"],
+      classes: ["https://backend-n6s1.onrender.com/api/pl/classes"],
     };
 
     const fetchData = async () => {
