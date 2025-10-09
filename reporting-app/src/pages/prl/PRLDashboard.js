@@ -22,10 +22,10 @@ function PRLDashboard() {
     if (!activeTab) return;
 
     const endpoints = {
-      courses: "http://localhost:5000/api/prl/courses",
-      reports: "http://localhost:5000/api/prl/reports",
-      classes: "http://localhost:5000/api/prl/classes",
-      ratings: "http://localhost:5000/api/prl/ratings",
+      courses: "https://backend-n6s1.onrender.com/api/prl/courses",
+      reports: "https://backend-n6s1.onrender.com/api/prl/reports",
+      classes: "https://backend-n6s1.onrender.com/api/prl/classes",
+      ratings: "https://backend-n6s1.onrender.com/api/prl/ratings",
     };
 
     axios.get(endpoints[activeTab]).then((res) => {
