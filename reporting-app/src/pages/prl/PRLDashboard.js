@@ -57,12 +57,12 @@ function PRLDashboard() {
     }
 
     try {
-      await axios.post(`http://localhost:5000/api/prl/reports/${reportId}/feedback`, { feedback });
+      await axios.post(`https://backend-n6s1.onrender.com/api/prl/reports/${reportId}/feedback`, { feedback });
       alert("✅ Feedback added successfully!");
       setFeedbacks({ ...feedbacks, [reportId]: "" });
 
       // Refresh reports
-      const updated = await axios.get("http://localhost:5000/api/prl/reports");
+      const updated = await axios.get("https://backend-n6s1.onrender.com/api/prl/reports");
       setReports(updated.data);
     } catch {
       alert("❌ Failed to save feedback");
@@ -72,7 +72,7 @@ function PRLDashboard() {
   // ✅ Download Excel
   const downloadExcel = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/export/reports", {
+      const res = await axios.get("https://backend-n6s1.onrender.com/api/export/reports", {
         responseType: "blob",
       });
       const url = window.URL.createObjectURL(new Blob([res.data]));
