@@ -6,10 +6,14 @@ import reportsImg from "../../assets/reports.jpg";
 import ratingsImg from "../../assets/ratings.jpg";
 import monitoringImg from "../../assets/monitoring.jpg";
 
+// ✅ Fallback: Use Render API if available, else use localhost
+const API_BASE_URL =
+  process.env.REACT_APP_API_URL || "http://localhost:5000";
+
 function StudentDashboard() {
   const user = JSON.parse(localStorage.getItem("user"));
   const [reports, setReports] = useState([]);
-  const [activeTab, setActiveTab] = useState(null); // default null (show cards)
+  const [activeTab, setActiveTab] = useState(null);
   const [selectedReport, setSelectedReport] = useState(null);
   const [rating, setRating] = useState({ rating: 1, feedback: "" });
 
@@ -17,7 +21,7 @@ function StudentDashboard() {
   useEffect(() => {
     if (user) {
       axios
-        .get("https://backend-n6s1.onrender.com/api/student/reports")
+        .get(`${API_BASE_URL}/api/student/reports`)
         .then((res) => setReports(res.data))
         .catch((err) => console.error("❌ Error fetching reports:", err));
     }
@@ -27,7 +31,7 @@ function StudentDashboard() {
   const submitRating = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5000/api/student/rate", {
+      await axios.post(`${API_BASE_URL}/api/student/rate`, {
         student_id: user.id,
         lecturer_id: selectedReport?.lecturer_id,
         course: selectedReport?.course,
@@ -70,7 +74,10 @@ function StudentDashboard() {
               <img src={ratingsImg} alt="Ratings" />
               <h4>Ratings</h4>
             </div>
-            <div className="dash-card" onClick={() => setActiveTab("monitoring")}>
+            <div
+              className="dash-card"
+              onClick={() => setActiveTab("monitoring")}
+            >
               <img src={monitoringImg} alt="Monitoring" />
               <h4>Monitoring</h4>
             </div>

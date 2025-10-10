@@ -6,6 +6,10 @@ import reportsImg from "../../assets/reports.jpg";
 import classesImg from "../../assets/classes.jpg";
 import ratingsImg from "../../assets/ratings.jpg";
 
+// ✅ Fallback to localhost if not on Render
+const API_BASE_URL =
+  process.env.REACT_APP_API_URL || "http://localhost:5000";
+
 function PLDashboard() {
   const user = JSON.parse(localStorage.getItem("user"));
   const [activeTab, setActiveTab] = useState(null);
@@ -23,7 +27,7 @@ function PLDashboard() {
   // ✅ Download Excel file
   const downloadExcel = async () => {
     try {
-      const res = await axios.get("https://backend-n6s1.onrender.com/api/export/reports", {
+      const res = await axios.get(`${API_BASE_URL}/api/export/reports`, {
         responseType: "blob",
       });
       const url = window.URL.createObjectURL(new Blob([res.data]));
@@ -43,35 +47,39 @@ function PLDashboard() {
     if (!activeTab) return;
 
     const endpoints = {
-      courses: ["https://backend-n6s1.onrender.com/api/pl/courses", "https://backend-n6s1.onrender.com/api/pl/lectures"],
-      reports: ["https://backend-n6s1.onrender.com/api/pl/reports"],
-      ratings: ["https://backend-n6s1.onrender.com/api/pl/ratings"],
-      classes: ["https://backend-n6s1.onrender.com/api/pl/classes"],
+      courses: [`${API_BASE_URL}/api/pl/courses`, `${API_BASE_URL}/api/pl/lectures`],
+      reports: [`${API_BASE_URL}/api/pl/reports`],
+      ratings: [`${API_BASE_URL}/api/pl/ratings`],
+      classes: [`${API_BASE_URL}/api/pl/classes`],
     };
 
     const fetchData = async () => {
-      if (activeTab === "courses") {
-        const [coursesRes, lecturersRes] = await Promise.all([
-          axios.get(endpoints.courses[0]),
-          axios.get(endpoints.courses[1]),
-        ]);
-        setCourses(coursesRes.data);
-        setLecturers(lecturersRes.data);
-      } else {
-        const res = await axios.get(endpoints[activeTab][0]);
-        switch (activeTab) {
-          case "reports":
-            setReports(res.data);
-            break;
-          case "ratings":
-            setRatings(res.data);
-            break;
-          case "classes":
-            setClasses(res.data);
-            break;
-          default:
-            break;
+      try {
+        if (activeTab === "courses") {
+          const [coursesRes, lecturersRes] = await Promise.all([
+            axios.get(endpoints.courses[0]),
+            axios.get(endpoints.courses[1]),
+          ]);
+          setCourses(coursesRes.data);
+          setLecturers(lecturersRes.data);
+        } else {
+          const res = await axios.get(endpoints[activeTab][0]);
+          switch (activeTab) {
+            case "reports":
+              setReports(res.data);
+              break;
+            case "ratings":
+              setRatings(res.data);
+              break;
+            case "classes":
+              setClasses(res.data);
+              break;
+            default:
+              break;
+          }
         }
+      } catch (err) {
+        console.error("❌ Error fetching data:", err);
       }
     };
 
@@ -90,18 +98,26 @@ function PLDashboard() {
   // ✅ Add course
   const addCourse = async (e) => {
     e.preventDefault();
-    const res = await axios.post("https://backend-n6s1.onrender.com/api/pl/courses", newCourse);
-    setCourses([res.data, ...courses]);
-    setNewCourse({ name: "", description: "" });
-    setShowForm(false);
+    try {
+      const res = await axios.post(`${API_BASE_URL}/api/pl/courses`, newCourse);
+      setCourses([res.data, ...courses]);
+      setNewCourse({ name: "", description: "" });
+      setShowForm(false);
+    } catch (err) {
+      alert("❌ Failed to add course");
+    }
   };
 
   // ✅ Assign lecturer
   const assignLecturer = async (courseId, lecturerId) => {
-    await axios.post(`https://backend-n6s1.onrender.com/api/pl/courses/${courseId}/assign`, {
-      lecturer_id: lecturerId,
-    });
-    alert("✅ Lecturer assigned!");
+    try {
+      await axios.post(`${API_BASE_URL}/api/pl/courses/${courseId}/assign`, {
+        lecturer_id: lecturerId,
+      });
+      alert("✅ Lecturer assigned!");
+    } catch (err) {
+      alert("❌ Failed to assign lecturer");
+    }
   };
 
   return (
@@ -121,7 +137,7 @@ function PLDashboard() {
       <main className="dashboard-main">
         <h2>Welcome, {user?.name}</h2>
 
-        {/* ✅ Hide cards when a tab is active */}
+        {/* ✅ Dashboard Cards */}
         {!activeTab && (
           <div className="card-grid">
             <div className="dash-card" onClick={() => setActiveTab("courses")}>

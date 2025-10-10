@@ -2,6 +2,12 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+// ✅ Define backend base URL (auto switch between local & hosted)
+const API_BASE_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:5000"
+    : "https://your-backend.onrender.com"; // 🔁 replace with your actual Render backend URL
+
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
   const navigate = useNavigate();
@@ -11,31 +17,43 @@ export default function Login() {
   const submit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", {
+      // ✅ Use fallback URL automatically
+      const res = await axios.post(`${API_BASE_URL}/api/auth/login`, {
         email: form.email.trim(),
         password: form.password,
       });
 
-      // ✅ Save both token and user info
+      // ✅ Save token + user info
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
 
       alert(res.data.message || "Login successful");
 
-      // ✅ redirect by role
-      if (res.data.user.role === "student") navigate("/student-dashboard");
-      else if (res.data.user.role === "lecturer") navigate("/lecturer-dashboard");
-      else if (res.data.user.role === "prl") navigate("/prl-dashboard");
-      else if (res.data.user.role === "pl") navigate("/pl-dashboard");
-      else navigate("/"); // fallback
+      // ✅ Redirect by role
+      switch (res.data.user.role) {
+        case "student":
+          navigate("/student-dashboard");
+          break;
+        case "lecturer":
+          navigate("/lecturer-dashboard");
+          break;
+        case "prl":
+          navigate("/prl-dashboard");
+          break;
+        case "pl":
+          navigate("/pl-dashboard");
+          break;
+        default:
+          navigate("/");
+      }
     } catch (err) {
       alert("❌ " + (err.response?.data?.message || "Login failed"));
     }
   };
 
   return (
-    <div className="card p-4">
-      <h3>Login</h3>
+    <div className="card p-4 shadow-sm">
+      <h3 className="mb-3 text-center">Login</h3>
       <form onSubmit={submit}>
         <div className="mb-3">
           <label>Email</label>

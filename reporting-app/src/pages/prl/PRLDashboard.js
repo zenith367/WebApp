@@ -6,6 +6,10 @@ import reportsImg from "../../assets/reports.jpg";
 import classesImg from "../../assets/classes.jpg";
 import ratingsImg from "../../assets/ratings.jpg";
 
+// ✅ Automatically detect backend URL (Render or localhost)
+const API_BASE_URL =
+  process.env.REACT_APP_API_URL || "http://localhost:5000";
+
 function PRLDashboard() {
   const user = JSON.parse(localStorage.getItem("user"));
   const [activeTab, setActiveTab] = useState(null);
@@ -22,30 +26,36 @@ function PRLDashboard() {
     if (!activeTab) return;
 
     const endpoints = {
-      courses: "https://backend-n6s1.onrender.com/api/prl/courses",
-      reports: "https://backend-n6s1.onrender.com/api/prl/reports",
-      classes: "https://backend-n6s1.onrender.com/api/prl/classes",
-      ratings: "https://backend-n6s1.onrender.com/api/prl/ratings",
+      courses: `${API_BASE_URL}/api/prl/courses`,
+      reports: `${API_BASE_URL}/api/prl/reports`,
+      classes: `${API_BASE_URL}/api/prl/classes`,
+      ratings: `${API_BASE_URL}/api/prl/ratings`,
     };
 
-    axios.get(endpoints[activeTab]).then((res) => {
-      switch (activeTab) {
-        case "courses":
-          setCourses(res.data);
-          break;
-        case "reports":
-          setReports(res.data);
-          break;
-        case "classes":
-          setClasses(res.data);
-          break;
-        case "ratings":
-          setRatings(res.data);
-          break;
-        default:
-          break;
-      }
-    });
+    axios
+      .get(endpoints[activeTab])
+      .then((res) => {
+        switch (activeTab) {
+          case "courses":
+            setCourses(res.data);
+            break;
+          case "reports":
+            setReports(res.data);
+            break;
+          case "classes":
+            setClasses(res.data);
+            break;
+          case "ratings":
+            setRatings(res.data);
+            break;
+          default:
+            break;
+        }
+      })
+      .catch((err) => {
+        console.error("❌ Fetch error:", err);
+        alert("Failed to load data. Please check your connection or backend.");
+      });
   }, [activeTab]);
 
   // ✅ Add feedback for specific report
@@ -57,14 +67,17 @@ function PRLDashboard() {
     }
 
     try {
-      await axios.post(`https://backend-n6s1.onrender.com/api/prl/reports/${reportId}/feedback`, { feedback });
+      await axios.post(`${API_BASE_URL}/api/prl/reports/${reportId}/feedback`, {
+        feedback,
+      });
       alert("✅ Feedback added successfully!");
       setFeedbacks({ ...feedbacks, [reportId]: "" });
 
       // Refresh reports
-      const updated = await axios.get("https://backend-n6s1.onrender.com/api/prl/reports");
+      const updated = await axios.get(`${API_BASE_URL}/api/prl/reports`);
       setReports(updated.data);
-    } catch {
+    } catch (err) {
+      console.error(err);
       alert("❌ Failed to save feedback");
     }
   };
@@ -72,7 +85,7 @@ function PRLDashboard() {
   // ✅ Download Excel
   const downloadExcel = async () => {
     try {
-      const res = await axios.get("https://backend-n6s1.onrender.com/api/export/reports", {
+      const res = await axios.get(`${API_BASE_URL}/api/export/reports`, {
         responseType: "blob",
       });
       const url = window.URL.createObjectURL(new Blob([res.data]));
@@ -82,7 +95,8 @@ function PRLDashboard() {
       document.body.appendChild(link);
       link.click();
       link.remove();
-    } catch {
+    } catch (err) {
+      console.error(err);
       alert("❌ Failed to download Excel file");
     }
   };

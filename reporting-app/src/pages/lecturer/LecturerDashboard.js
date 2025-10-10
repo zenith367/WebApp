@@ -6,6 +6,12 @@ import reportsImg from "../../assets/reports.jpg";
 import ratingsImg from "../../assets/ratings.jpg";
 import monitoringImg from "../../assets/monitoring.jpg";
 
+// ✅ Backend URL with automatic fallback
+const BASE_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:5000"
+    : "https://backend-n6s1.onrender.com";
+
 function LecturerDashboard() {
   const user = JSON.parse(localStorage.getItem("user"));
   const [activeTab, setActiveTab] = useState(null);
@@ -19,21 +25,21 @@ function LecturerDashboard() {
     comments: "",
   });
 
-  // ✅ Fetch ratings when needed
+  // ✅ Fetch ratings
   useEffect(() => {
     if (user && activeTab === "ratings") {
       axios
-        .get(`http://localhost:5000/api/lecturer/ratings/${user.id}`)
+        .get(`${BASE_URL}/api/lecturer/ratings/${user.id}`)
         .then((res) => setRatings(res.data))
         .catch((err) => console.error("❌ Error fetching ratings:", err));
     }
   }, [user, activeTab]);
 
-  // ✅ Fetch reports only when needed
+  // ✅ Fetch reports
   useEffect(() => {
     if (user && activeTab === "reports") {
       axios
-        .get(`http://localhost:5000/api/lecturer/reports/${user.id}`)
+        .get(`${BASE_URL}/api/lecturer/reports/${user.id}`)
         .then((res) => setReports(res.data))
         .catch((err) => console.error("❌ Error fetching reports:", err));
     }
@@ -43,7 +49,7 @@ function LecturerDashboard() {
   const submitReport = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("https://backend-n6s1.onrender.com/api/lecturer/report", {
+      const res = await axios.post(`${BASE_URL}/api/lecturer/report`, {
         ...report,
         lecturer_id: user.id,
       });
@@ -53,6 +59,7 @@ function LecturerDashboard() {
       setShowForm(false);
     } catch (err) {
       alert("❌ Failed to submit report");
+      console.error(err);
     }
   };
 
