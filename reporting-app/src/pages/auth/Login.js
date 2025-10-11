@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 const API_BASE_URL =
   window.location.hostname === "localhost"
     ? "http://localhost:5000"
-    : "https://your-backend.onrender.com"; // 🔁 replace with your actual Render backend URL
+    : "https://backend-n6s1.onrender.com"
 
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
