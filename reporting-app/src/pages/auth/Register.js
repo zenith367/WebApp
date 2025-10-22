@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+// ✅ Correct base URL setup
 const API_BASE_URL =
   window.location.hostname === "localhost"
     ? "http://localhost:5000"
