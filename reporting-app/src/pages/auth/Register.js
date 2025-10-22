@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-// ✅ Auto-detect backend: localhost in dev, Render in production
 const API_BASE_URL =
   window.location.hostname === "localhost"
     ? "http://localhost:5000"
