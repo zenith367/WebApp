@@ -1,5 +1,17 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import {
+  LineChart,
+  Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  BarChart,
+  Bar,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 // Images
 import reportsImg from "../../assets/reports.jpg";
@@ -16,6 +28,15 @@ function StudentDashboard() {
   const [activeTab, setActiveTab] = useState(null);
   const [selectedReport, setSelectedReport] = useState(null);
   const [rating, setRating] = useState({ rating: 1, feedback: "" });
+
+  // 📊 Dummy data for monitoring charts
+  const [monitoringData] = useState([
+    { month: "Jan", reports: 3, ratings: 2 },
+    { month: "Feb", reports: 4, ratings: 3 },
+    { month: "Mar", reports: 6, ratings: 5 },
+    { month: "Apr", reports: 5, ratings: 4 },
+    { month: "May", reports: 7, ratings: 5 },
+  ]);
 
   // Fetch reports
   useEffect(() => {
@@ -168,6 +189,7 @@ function StudentDashboard() {
                   onChange={(e) =>
                     setRating({ ...rating, feedback: e.target.value })
                   }
+                  required
                 />
                 <button className="btn btn-success">Submit</button>
               </form>
@@ -177,7 +199,7 @@ function StudentDashboard() {
           </div>
         )}
 
-        {/* Monitoring Section */}
+        {/* 📊 Monitoring Section with Charts */}
         {activeTab === "monitoring" && (
           <div className="content-card">
             <button
@@ -186,8 +208,47 @@ function StudentDashboard() {
             >
               ← Back
             </button>
-            <h4>📊 Monitoring</h4>
-            <p>Monitoring statistics will appear here.</p>
+            <h4>📊 Monitoring Overview</h4>
+            <p>Reports vs Ratings over the semester</p>
+
+            {/* Line Chart */}
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={monitoringData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="reports"
+                  stroke="#007bff"
+                  strokeWidth={2}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="ratings"
+                  stroke="#00b894"
+                  strokeWidth={2}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+
+            {/* Bar Chart */}
+            <div className="mt-4">
+              <h5>📈 Reports and Ratings Summary</h5>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={monitoringData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="reports" fill="#007bff" />
+                  <Bar dataKey="ratings" fill="#00b894" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         )}
       </main>

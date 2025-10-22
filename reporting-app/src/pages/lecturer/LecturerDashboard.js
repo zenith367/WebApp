@@ -5,6 +5,7 @@ import axios from "axios";
 import reportsImg from "../../assets/reports.jpg";
 import ratingsImg from "../../assets/ratings.jpg";
 import monitoringImg from "../../assets/monitoring.jpg";
+import classesImg from "../../assets/classes.jpg"; // ✅ make sure this exists in /assets folder
 
 // ✅ Backend URL with automatic fallback
 const BASE_URL =
@@ -17,6 +18,7 @@ function LecturerDashboard() {
   const [activeTab, setActiveTab] = useState(null);
   const [ratings, setRatings] = useState([]);
   const [reports, setReports] = useState([]);
+  const [classes, setClasses] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [report, setReport] = useState({
     student_id: "",
@@ -25,7 +27,7 @@ function LecturerDashboard() {
     comments: "",
   });
 
-  // ✅ Fetch ratings
+  // ✅ Fetch Ratings
   useEffect(() => {
     if (user && activeTab === "ratings") {
       axios
@@ -35,7 +37,7 @@ function LecturerDashboard() {
     }
   }, [user, activeTab]);
 
-  // ✅ Fetch reports
+  // ✅ Fetch Reports
   useEffect(() => {
     if (user && activeTab === "reports") {
       axios
@@ -45,7 +47,17 @@ function LecturerDashboard() {
     }
   }, [user, activeTab]);
 
-  // ✅ Submit report
+  // ✅ Fetch Classes (view only, no filters)
+  useEffect(() => {
+    if (activeTab === "classes") {
+      axios
+        .get(`${BASE_URL}/api/lecturer/classes`)
+        .then((res) => setClasses(res.data))
+        .catch((err) => console.error("❌ Error fetching classes:", err));
+    }
+  }, [activeTab]);
+
+  // ✅ Submit Report
   const submitReport = async (e) => {
     e.preventDefault();
     try {
@@ -69,6 +81,7 @@ function LecturerDashboard() {
       <aside className="sidebar">
         <h3>👨‍🏫 Lecturer</h3>
         <ul>
+          <li onClick={() => setActiveTab("classes")}>Classes</li>
           <li onClick={() => setActiveTab("reports")}>Reports</li>
           <li onClick={() => setActiveTab("ratings")}>Ratings</li>
           <li onClick={() => setActiveTab("monitoring")}>Monitoring</li>
@@ -82,6 +95,10 @@ function LecturerDashboard() {
         {/* Dashboard Cards */}
         {!activeTab && (
           <div className="card-grid">
+            <div className="dash-card" onClick={() => setActiveTab("classes")}>
+              <img src={classesImg} alt="Classes" />
+              <h4>Classes</h4>
+            </div>
             <div className="dash-card" onClick={() => setActiveTab("reports")}>
               <img src={reportsImg} alt="Reports" />
               <h4>Reports</h4>
@@ -94,6 +111,35 @@ function LecturerDashboard() {
               <img src={monitoringImg} alt="Monitoring" />
               <h4>Monitoring</h4>
             </div>
+          </div>
+        )}
+
+        {/* ✅ CLASSES SECTION */}
+        {activeTab === "classes" && (
+          <div className="card mt-4 p-3">
+            <h4>📚 All Classes</h4>
+            {classes.length > 0 ? (
+              <table className="table table-striped mt-3">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Class Name</th>
+                    <th>Schedule</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {classes.map((cls, index) => (
+                    <tr key={cls.id}>
+                      <td>{index + 1}</td>
+                      <td>{cls.class_name}</td>
+                      <td>{cls.schedule}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p>No classes found in the database.</p>
+            )}
           </div>
         )}
 

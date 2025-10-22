@@ -1,5 +1,17 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import {
+  LineChart,
+  Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  BarChart,
+  Bar,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 import coursesImg from "../../assets/courses.jpg";
 import reportsImg from "../../assets/reports.jpg";
@@ -20,6 +32,16 @@ function PRLDashboard() {
   const [ratings, setRatings] = useState([]);
   const [feedbacks, setFeedbacks] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Dummy Monitoring Data
+  const [monitoringData] = useState([
+    { month: "Jan", reports: 4, ratings: 3 },
+    { month: "Feb", reports: 6, ratings: 4 },
+    { month: "Mar", reports: 5, ratings: 2 },
+    { month: "Apr", reports: 7, ratings: 5 },
+    { month: "May", reports: 9, ratings: 4 },
+    { month: "Jun", reports: 8, ratings: 5 },
+  ]);
 
   // ✅ Fetch data per tab
   useEffect(() => {
@@ -53,32 +75,26 @@ function PRLDashboard() {
         }
       })
       .catch((err) => {
-        console.error("❌ Fetch error:", err);
-        alert("Failed to load data. Please check your connection or backend.");
+        console.warn("⚠️ Fetch warning:", err.message);
       });
   }, [activeTab]);
 
-  // ✅ Add feedback for specific report
+  // ✅ Add feedback
   const addFeedback = async (reportId) => {
     const feedback = feedbacks[reportId] || "";
-    if (!feedback.trim()) {
-      alert("⚠️ Please enter feedback before saving.");
-      return;
-    }
+    if (!feedback.trim()) return;
 
     try {
       await axios.post(`${API_BASE_URL}/api/prl/reports/${reportId}/feedback`, {
         feedback,
       });
-      alert("✅ Feedback added successfully!");
       setFeedbacks({ ...feedbacks, [reportId]: "" });
 
-      // Refresh reports
+      // Refresh reports silently
       const updated = await axios.get(`${API_BASE_URL}/api/prl/reports`);
       setReports(updated.data);
     } catch (err) {
-      console.error(err);
-      alert("❌ Failed to save feedback");
+      console.warn("⚠️ Failed to save feedback:", err.message);
     }
   };
 
@@ -96,8 +112,7 @@ function PRLDashboard() {
       link.click();
       link.remove();
     } catch (err) {
-      console.error(err);
-      alert("❌ Failed to download Excel file");
+      console.warn("⚠️ Excel download failed:", err.message);
     }
   };
 
@@ -120,6 +135,7 @@ function PRLDashboard() {
           <li onClick={() => setActiveTab("reports")}>Reports</li>
           <li onClick={() => setActiveTab("classes")}>Classes</li>
           <li onClick={() => setActiveTab("ratings")}>Ratings</li>
+          <li onClick={() => setActiveTab("monitoring")}>Monitoring</li>
         </ul>
       </aside>
 
@@ -127,7 +143,7 @@ function PRLDashboard() {
       <main className="dashboard-main">
         <h2>Welcome, {user?.name}</h2>
 
-        {/* Dashboard cards (hide when tab is open) */}
+        {/* Dashboard cards */}
         {!activeTab && (
           <div className="card-grid">
             <div className="dash-card" onClick={() => setActiveTab("courses")}>
@@ -146,11 +162,15 @@ function PRLDashboard() {
               <img src={ratingsImg} alt="Ratings" />
               <h4>Ratings</h4>
             </div>
+            <div className="dash-card" onClick={() => setActiveTab("monitoring")}>
+              <img src={ratingsImg} alt="Monitoring" />
+              <h4>Monitoring</h4>
+            </div>
           </div>
         )}
 
-        {/* Back button + search */}
-        {activeTab && (
+        {/* Back + search */}
+        {activeTab && activeTab !== "monitoring" && (
           <>
             <button
               className="btn btn-outline-secondary mb-3"
@@ -158,7 +178,6 @@ function PRLDashboard() {
             >
               ← Back to Dashboard
             </button>
-
             <input
               type="text"
               className="form-control mb-3"
@@ -169,7 +188,7 @@ function PRLDashboard() {
           </>
         )}
 
-        {/* 🧩 COURSES */}
+        {/* Courses */}
         {activeTab === "courses" && (
           <div className="card p-3 mt-4">
             <h4>Courses & Lecturers</h4>
@@ -192,7 +211,7 @@ function PRLDashboard() {
           </div>
         )}
 
-        {/* 📝 REPORTS */}
+        {/* Reports */}
         {activeTab === "reports" && (
           <div className="card p-3 mt-4">
             <div className="d-flex justify-content-between align-items-center mb-2">
@@ -244,7 +263,7 @@ function PRLDashboard() {
           </div>
         )}
 
-        {/* 🏫 CLASSES */}
+        {/* Classes */}
         {activeTab === "classes" && (
           <div className="card p-3 mt-4">
             <h4>Classes</h4>
@@ -267,11 +286,21 @@ function PRLDashboard() {
           </div>
         )}
 
-        {/* ⭐ RATINGS */}
+        {/* Ratings */}
         {activeTab === "ratings" && (
           <div className="card p-3 mt-4">
-            <h4>Ratings</h4>
-            <table className="table table-striped">
+            <h4>Ratings Overview</h4>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={ratings}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="course" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="rating" fill="#007bff" />
+              </BarChart>
+            </ResponsiveContainer>
+            <table className="table table-striped mt-4">
               <thead>
                 <tr>
                   <th>Course</th>
@@ -291,6 +320,25 @@ function PRLDashboard() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Monitoring */}
+        {activeTab === "monitoring" && (
+          <div className="card p-4 mt-4">
+            <h4>Monitoring Overview</h4>
+            <p>Track reports and ratings over time.</p>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={monitoringData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="reports" stroke="#007bff" />
+                <Line type="monotone" dataKey="ratings" stroke="#00b894" />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         )}
       </main>

@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
 
-// ✅ Create a report for a class
+// ✅ Create a report
 router.post("/report", async (req, res) => {
   try {
     const { lecturer_id, course, topic, comments } = req.body;
@@ -19,7 +19,7 @@ router.post("/report", async (req, res) => {
   }
 });
 
-// ✅ View ratings given to this lecturer
+// ✅ Get lecturer ratings
 router.get("/ratings/:lecturerId", async (req, res) => {
   try {
     const { lecturerId } = req.params;
@@ -36,6 +36,36 @@ router.get("/ratings/:lecturerId", async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     console.error("❌ Error fetching ratings:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ✅ Get reports created by this lecturer
+router.get("/reports/:lecturerId", async (req, res) => {
+  try {
+    const { lecturerId } = req.params;
+
+    const result = await db.query(
+      "SELECT * FROM reports WHERE lecturer_id = $1 ORDER BY id DESC",
+      [lecturerId]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("❌ Error fetching reports:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ✅ Get ALL classes (view only, no filters)
+router.get("/classes", async (req, res) => {
+  try {
+    const result = await db.query(
+      "SELECT id, name AS class_name, schedule FROM classes ORDER BY id ASC"
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("❌ Error fetching classes:", err.message);
     res.status(500).json({ error: err.message });
   }
 });

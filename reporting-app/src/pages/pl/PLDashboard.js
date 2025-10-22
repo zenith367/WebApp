@@ -6,9 +6,10 @@ import reportsImg from "../../assets/reports.jpg";
 import classesImg from "../../assets/classes.jpg";
 import ratingsImg from "../../assets/ratings.jpg";
 
-// ✅ Fallback to localhost if not on Render
 const API_BASE_URL =
-  process.env.REACT_APP_API_URL || "http://localhost:5000";
+  window.location.hostname === "localhost"
+    ? "http://localhost:5000"
+    : "https://backend-n6s1.onrender.com";
 
 function PLDashboard() {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -16,41 +17,27 @@ function PLDashboard() {
 
   const [courses, setCourses] = useState([]);
   const [lecturers, setLecturers] = useState([]);
-  const [reports, setReports] = useState([]);
-  const [ratings, setRatings] = useState([]);
+  const [reports, setReports] = useState([]); // from PRL
   const [classes, setClasses] = useState([]);
+  const [ratings, setRatings] = useState([]);
 
   const [showForm, setShowForm] = useState(false);
   const [newCourse, setNewCourse] = useState({ name: "", description: "" });
+  const [newClass, setNewClass] = useState({ name: "", schedule: "" });
   const [searchTerm, setSearchTerm] = useState("");
 
-  // ✅ Download Excel file
-  const downloadExcel = async () => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/api/export/reports`, {
-        responseType: "blob",
-      });
-      const url = window.URL.createObjectURL(new Blob([res.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", "pl_reports.xlsx");
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch {
-      alert("❌ Failed to download Excel file");
-    }
-  };
-
-  // ✅ Fetch data per active tab
+  // ✅ Fetch data
   useEffect(() => {
     if (!activeTab) return;
 
     const endpoints = {
-      courses: [`${API_BASE_URL}/api/pl/courses`, `${API_BASE_URL}/api/pl/lectures`],
-      reports: [`${API_BASE_URL}/api/pl/reports`],
-      ratings: [`${API_BASE_URL}/api/pl/ratings`],
+      courses: [
+        `${API_BASE_URL}/api/pl/courses`,
+        `${API_BASE_URL}/api/pl/lectures`,
+      ],
+      reports: [`${API_BASE_URL}/api/prl/reports`], // ✅ from PRL
       classes: [`${API_BASE_URL}/api/pl/classes`],
+      ratings: [`${API_BASE_URL}/api/pl/ratings`],
     };
 
     const fetchData = async () => {
@@ -68,25 +55,24 @@ function PLDashboard() {
             case "reports":
               setReports(res.data);
               break;
-            case "ratings":
-              setRatings(res.data);
-              break;
             case "classes":
               setClasses(res.data);
+              break;
+            case "ratings":
+              setRatings(res.data);
               break;
             default:
               break;
           }
         }
       } catch (err) {
-        console.error("❌ Error fetching data:", err);
+        console.error("❌ Fetch error:", err);
+        alert("Failed to load data from backend.");
       }
     };
-
     fetchData();
   }, [activeTab]);
 
-  // ✅ Filter function
   const filterData = (data) =>
     data.filter((item) =>
       Object.values(item)
@@ -95,20 +81,48 @@ function PLDashboard() {
         .includes(searchTerm.toLowerCase())
     );
 
-  // ✅ Add course
+  /* =======================
+     COURSE MANAGEMENT
+  ======================= */
   const addCourse = async (e) => {
     e.preventDefault();
     try {
       const res = await axios.post(`${API_BASE_URL}/api/pl/courses`, newCourse);
       setCourses([res.data, ...courses]);
-      setNewCourse({ name: "", description: "" });
       setShowForm(false);
+      setNewCourse({ name: "", description: "" });
+      alert("✅ Course added");
     } catch (err) {
       alert("❌ Failed to add course");
     }
   };
 
-  // ✅ Assign lecturer
+  const updateCourse = async (id, name, description) => {
+    try {
+      await axios.put(`${API_BASE_URL}/api/pl/courses/${id}`, {
+        name,
+        description,
+      });
+      setCourses(
+        courses.map((c) => (c.id === id ? { ...c, name, description } : c))
+      );
+      alert("✅ Course updated!");
+    } catch (err) {
+      alert("❌ Failed to update");
+    }
+  };
+
+  const deleteCourse = async (id) => {
+    if (!window.confirm("Delete this course?")) return;
+    try {
+      await axios.delete(`${API_BASE_URL}/api/pl/courses/${id}`);
+      setCourses(courses.filter((c) => c.id !== id));
+      alert("🗑️ Course deleted");
+    } catch (err) {
+      alert("❌ Delete failed");
+    }
+  };
+
   const assignLecturer = async (courseId, lecturerId) => {
     try {
       await axios.post(`${API_BASE_URL}/api/pl/courses/${courseId}/assign`, {
@@ -120,6 +134,69 @@ function PLDashboard() {
     }
   };
 
+  /* =======================
+     CLASS MANAGEMENT
+  ======================= */
+  const addClass = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post(`${API_BASE_URL}/api/pl/classes`, newClass);
+      setClasses([res.data, ...classes]);
+      setShowForm(false);
+      setNewClass({ name: "", schedule: "" });
+      alert("✅ Class added!");
+    } catch (err) {
+      console.error(err);
+      alert("❌ Failed to add class");
+    }
+  };
+
+  const updateClass = async (id, name, schedule) => {
+    try {
+      await axios.put(`${API_BASE_URL}/api/pl/classes/${id}`, {
+        name,
+        schedule,
+      });
+      setClasses(
+        classes.map((cl) => (cl.id === id ? { ...cl, name, schedule } : cl))
+      );
+      alert("✅ Class updated!");
+    } catch (err) {
+      alert("❌ Failed to update class");
+    }
+  };
+
+  const deleteClass = async (id) => {
+    if (!window.confirm("Delete this class?")) return;
+    try {
+      await axios.delete(`${API_BASE_URL}/api/pl/classes/${id}`);
+      setClasses(classes.filter((cl) => cl.id !== id));
+      alert("🗑️ Class deleted");
+    } catch (err) {
+      alert("❌ Delete failed");
+    }
+  };
+
+  /* =======================
+     EXCEL EXPORT
+  ======================= */
+  const downloadExcel = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/export/reports`, {
+        responseType: "blob",
+      });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "prl_reports.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch {
+      alert("❌ Failed to download Excel file");
+    }
+  };
+
   return (
     <div className="dashboard-container">
       {/* Sidebar */}
@@ -127,17 +204,16 @@ function PLDashboard() {
         <h3>📘 Programme Leader</h3>
         <ul>
           <li onClick={() => setActiveTab("courses")}>Courses</li>
-          <li onClick={() => setActiveTab("reports")}>Reports</li>
+          <li onClick={() => setActiveTab("reports")}>Reports (PRL)</li>
           <li onClick={() => setActiveTab("classes")}>Classes</li>
           <li onClick={() => setActiveTab("ratings")}>Ratings</li>
         </ul>
       </aside>
 
-      {/* Main Content */}
+      {/* Main */}
       <main className="dashboard-main">
         <h2>Welcome, {user?.name}</h2>
 
-        {/* ✅ Dashboard Cards */}
         {!activeTab && (
           <div className="card-grid">
             <div className="dash-card" onClick={() => setActiveTab("courses")}>
@@ -146,7 +222,7 @@ function PLDashboard() {
             </div>
             <div className="dash-card" onClick={() => setActiveTab("reports")}>
               <img src={reportsImg} alt="Reports" />
-              <h4>Reports</h4>
+              <h4>PRL Reports</h4>
             </div>
             <div className="dash-card" onClick={() => setActiveTab("classes")}>
               <img src={classesImg} alt="Classes" />
@@ -159,14 +235,13 @@ function PLDashboard() {
           </div>
         )}
 
-        {/* ✅ Back Button & Search Bar */}
         {activeTab && (
           <>
             <button
               className="btn btn-outline-secondary mb-3"
               onClick={() => setActiveTab(null)}
             >
-              ← Back to Dashboard
+              ← Back
             </button>
             <input
               type="text"
@@ -178,24 +253,24 @@ function PLDashboard() {
           </>
         )}
 
-        {/* 📚 COURSES */}
+        {/* 📚 Courses */}
         {activeTab === "courses" && (
-          <div className="card mt-4 p-3">
-            <div className="d-flex justify-content-between align-items-center mb-2">
-              <h4>Courses</h4>
+          <div className="card p-3">
+            <div className="d-flex justify-content-between mb-3">
+              <h4>Courses Management</h4>
               <button
                 className="btn btn-primary btn-sm"
                 onClick={() => setShowForm(!showForm)}
               >
-                {showForm ? "Close Form" : "➕ Add Course"}
+                {showForm ? "Close" : "➕ Add Course"}
               </button>
             </div>
 
             {showForm && (
-              <form className="mt-3" onSubmit={addCourse}>
+              <form onSubmit={addCourse}>
                 <input
                   type="text"
-                  placeholder="Course Name"
+                  placeholder="Course name"
                   className="form-control mb-2"
                   value={newCourse.name}
                   onChange={(e) =>
@@ -209,38 +284,66 @@ function PLDashboard() {
                   className="form-control mb-2"
                   value={newCourse.description}
                   onChange={(e) =>
-                    setNewCourse({ ...newCourse, description: e.target.value })
+                    setNewCourse({
+                      ...newCourse,
+                      description: e.target.value,
+                    })
                   }
                 />
-                <button className="btn btn-success">Save Course</button>
+                <button className="btn btn-success">Save</button>
               </form>
             )}
 
             <table className="table table-striped mt-3">
               <thead>
                 <tr>
-                  <th>Course</th>
+                  <th>Name</th>
                   <th>Description</th>
-                  <th>Assign Lecturer</th>
+                  <th>Lecturer</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filterData(courses).map((c) => (
                   <tr key={c.id}>
-                    <td>{c.name}</td>
-                    <td>{c.description}</td>
+                    <td>
+                      <input
+                        className="form-control"
+                        defaultValue={c.name}
+                        onBlur={(e) =>
+                          updateCourse(c.id, e.target.value, c.description)
+                        }
+                      />
+                    </td>
+                    <td>
+                      <input
+                        className="form-control"
+                        defaultValue={c.description}
+                        onBlur={(e) =>
+                          updateCourse(c.id, c.name, e.target.value)
+                        }
+                      />
+                    </td>
                     <td>
                       <select
                         className="form-select"
                         onChange={(e) => assignLecturer(c.id, e.target.value)}
                       >
-                        <option value="">Select Lecturer</option>
+                        <option value="">Select</option>
                         {lecturers.map((l) => (
                           <option key={l.id} value={l.id}>
                             {l.name}
                           </option>
                         ))}
                       </select>
+                    </td>
+                    <td>
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() => deleteCourse(c.id)}
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -249,54 +352,119 @@ function PLDashboard() {
           </div>
         )}
 
-        {/* 🧾 REPORTS */}
+        {/* 🧾 Reports (from PRL) */}
         {activeTab === "reports" && (
-          <div className="card mt-4 p-3">
-            <div className="d-flex justify-content-between align-items-center mb-2">
-              <h4>Reports</h4>
+          <div className="card p-3">
+            <div className="d-flex justify-content-between mb-3">
+              <h4>Reports from PRL</h4>
               <button className="btn btn-success btn-sm" onClick={downloadExcel}>
-                ⬇ Download Excel
+                ⬇ Export Excel
               </button>
             </div>
-            <table className="table table-bordered">
-              <thead>
-                <tr>
-                  <th>Course</th>
-                  <th>Topic</th>
-                  <th>Comments</th>
-                  <th>Lecturer</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filterData(reports).map((r) => (
-                  <tr key={r.id}>
-                    <td>{r.course}</td>
-                    <td>{r.topic}</td>
-                    <td>{r.comments}</td>
-                    <td>{r.lecturer_name}</td>
+            {reports.length > 0 ? (
+              <table className="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>Course</th>
+                    <th>Topic</th>
+                    <th>Lecturer</th>
+                    <th>Comments</th>
+                    <th>Feedback</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filterData(reports).map((r) => (
+                    <tr key={r.id}>
+                      <td>{r.course}</td>
+                      <td>{r.topic}</td>
+                      <td>{r.lecturer_name}</td>
+                      <td>{r.comments}</td>
+                      <td>{r.feedback || "No feedback yet"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p>No reports available from PRL.</p>
+            )}
           </div>
         )}
 
-        {/* 🏫 CLASSES */}
+        {/* 🏫 Classes */}
         {activeTab === "classes" && (
-          <div className="card mt-4 p-3">
-            <h4>Classes</h4>
-            <table className="table table-striped">
+          <div className="card p-3">
+            <div className="d-flex justify-content-between mb-3">
+              <h4>Classes Management</h4>
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={() => setShowForm(!showForm)}
+              >
+                {showForm ? "Close" : "➕ Add Class"}
+              </button>
+            </div>
+
+            {showForm && (
+              <form onSubmit={addClass}>
+                <input
+                  type="text"
+                  placeholder="Class Name"
+                  className="form-control mb-2"
+                  value={newClass.name}
+                  onChange={(e) =>
+                    setNewClass({ ...newClass, name: e.target.value })
+                  }
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="Schedule"
+                  className="form-control mb-2"
+                  value={newClass.schedule}
+                  onChange={(e) =>
+                    setNewClass({ ...newClass, schedule: e.target.value })
+                  }
+                />
+                <button className="btn btn-success">Save Class</button>
+              </form>
+            )}
+
+            <table className="table table-hover mt-3">
               <thead>
                 <tr>
                   <th>Class</th>
                   <th>Schedule</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filterData(classes).map((cl) => (
                   <tr key={cl.id}>
-                    <td>{cl.name}</td>
-                    <td>{cl.schedule}</td>
+                    <td>
+                      <input
+                        className="form-control"
+                        defaultValue={cl.name}
+                        onBlur={(e) =>
+                          updateClass(cl.id, e.target.value, cl.schedule)
+                        }
+                      />
+                    </td>
+                    <td>
+                      <input
+                        className="form-control"
+                        defaultValue={cl.schedule}
+                        onBlur={(e) =>
+                          updateClass(cl.id, cl.name, e.target.value)
+                        }
+                      />
+                    </td>
+                    <td>
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() => deleteClass(cl.id)}
+                      >
+                        Delete
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -304,9 +472,9 @@ function PLDashboard() {
           </div>
         )}
 
-        {/* ⭐ RATINGS */}
+        {/* ⭐ Ratings */}
         {activeTab === "ratings" && (
-          <div className="card mt-4 p-3">
+          <div className="card p-3">
             <h4>Ratings Overview</h4>
             <table className="table table-striped">
               <thead>
