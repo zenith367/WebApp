@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-// ✅ Auto-detect backend: use localhost in dev, Render in production
+// ✅ Auto-detect backend: localhost in dev, Render in production
 const API_BASE_URL =
   window.location.hostname === "localhost"
     ? "http://localhost:5000"
-    : "https://backend-n6s1.onrender.com"// 🔁 replace with your actual Render backend URL
+    : "https://backend-n6s1.onrender.com";
 
 export default function Register() {
   const [form, setForm] = useState({
@@ -29,7 +29,7 @@ export default function Register() {
         role: form.role,
       });
 
-      alert(res.data.message || "Registered successfully");
+      alert(res.data.message || "✅ Registered successfully");
       navigate("/login");
     } catch (err) {
       alert(

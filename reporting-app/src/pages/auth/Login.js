@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 const API_BASE_URL =
   window.location.hostname === "localhost"
     ? "http://localhost:5000"
-    : "https://backend-n6s1.onrender.com"
+    : "https://backend-n6s1.onrender.com";
 
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -17,7 +17,6 @@ export default function Login() {
   const submit = async (e) => {
     e.preventDefault();
     try {
-      // ✅ Use fallback URL automatically
       const res = await axios.post(`${API_BASE_URL}/api/auth/login`, {
         email: form.email.trim(),
         password: form.password,
@@ -27,7 +26,7 @@ export default function Login() {
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
 
-      alert(res.data.message || "Login successful");
+      alert(res.data.message || "✅ Login successful");
 
       // ✅ Redirect by role
       switch (res.data.user.role) {
