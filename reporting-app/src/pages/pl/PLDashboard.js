@@ -9,7 +9,7 @@ import ratingsImg from "../../assets/ratings.jpg";
 const API_BASE_URL =
   window.location.hostname === "localhost"
     ? "http://localhost:5000"
-    : "https://backend-n6s1.onrender.com";
+    : "https://webapp-5agf.onrender.com";
 
 function PLDashboard() {
   const user = JSON.parse(localStorage.getItem("user"));
