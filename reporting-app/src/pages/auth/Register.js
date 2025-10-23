@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 const API_BASE_URL =
   window.location.hostname === "localhost"
     ? "http://localhost:5000"
-    : "https://webapp-5agf.onrender.com/api";
+    : "https://webapp-5agf.onrender.com";
 
 export default function Register() {
   const [form, setForm] = useState({
