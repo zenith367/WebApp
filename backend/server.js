@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 5000;
 // 🧱 Middleware
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://limkos-frontend.onrender.com"], // ✅ change this to your actual frontend Render URL later
+    origin: ["http://localhost:3000", "https://luct-reporting-app-gg82.onrender.com"], // ✅ change this to your actual frontend Render URL later
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
