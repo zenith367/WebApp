@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-// ✅ Correct base URL setup
+// ✅ Define backend base URL (auto switch between local & hosted)
 const API_BASE_URL =
   window.location.hostname === "localhost"
     ? "http://localhost:5000"
@@ -22,11 +22,13 @@ export default function Login() {
         password: form.password,
       });
 
+      // ✅ Save token + user info
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
 
       alert(res.data.message || "✅ Login successful");
 
+      // ✅ Redirect by role
       switch (res.data.user.role) {
         case "student":
           navigate("/student-dashboard");
