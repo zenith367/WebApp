@@ -11,7 +11,7 @@ import classesImg from "../../assets/classes.jpg"; // ✅ make sure this exists 
 const BASE_URL =
   window.location.hostname === "localhost"
     ? "http://localhost:5000"
-    : "https://backend-n6s1.onrender.com";
+    : "https://webapp-5agf.onrender.com";
 
 function LecturerDashboard() {
   const user = JSON.parse(localStorage.getItem("user"));
